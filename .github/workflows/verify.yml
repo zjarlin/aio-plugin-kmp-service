@@ -54,7 +54,7 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:19080/aio/definition | jq -e '.[0].id == "kmp-process"'
-          curl --fail --silent -X POST -H 'content-type: application/json' --data '{"kind":"page_action","page_id":"kmp-process","action_id":"increment","tenant_id":"tenant-ci","user_id":"user-ci"}' http://127.0.0.1:19080/aio/action | jq -e '.body.kind == "actions" and .body.content == "计数：1"'
+          curl --fail --silent -X POST -H 'content-type: application/json' --data '{"kind":"page_action","page_id":"kmp-process","action_id":"increment","tenant_id":"tenant-ci","user_id":"user-ci","body":{"kind":"actions","title":"Kotlin","content":"计数：6","state":{"count":6},"actions":[{"id":"increment","label":"Kotlin +1"}]}}' http://127.0.0.1:19080/aio/action | jq -e '.body.kind == "actions" and .body.content == "计数：7" and .body.state.count == 7'
           curl --fail --silent -X POST -H 'x-aio-tenant-id: tenant-ci' -H 'x-aio-user-id: user-ci' --data 'hello' http://127.0.0.1:19080/echo | jq -e '.tenant_id == "tenant-ci" and .user_id == "user-ci" and .body == "hello"'
 
       - name: 安装 Rust 工具链
@@ -64,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: zjarlin/aio
-          ref: 8fc7b148de4efd7cac736a4e32c0662317316a67
+          ref: ecf79e8c04e6ee4a8ab477955b933a4bb0b167ae
           path: aio-host-source
           submodules: recursive
 

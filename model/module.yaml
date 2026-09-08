@@ -4,6 +4,9 @@ product:
 
 description: "Language-neutral AIO process plugin models"
 
+dependencies:
+  - org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0
+
 settings:
   kotlin:
     version: 2.3.21

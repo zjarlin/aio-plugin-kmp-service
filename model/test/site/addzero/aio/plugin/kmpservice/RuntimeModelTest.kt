@@ -11,7 +11,11 @@ class RuntimeModelTest {
 
         assertEquals(listOf("kmp-process"), pages.map(PageDefinition::id))
         assertTrue(KmpProcessPlugin.definitionJson().contains("\"kind\":\"actions\""))
-        assertTrue(KmpProcessPlugin.actionResultJson(2).contains("\"content\":\"计数：2\""))
+        val result = KmpProcessPlugin.actionResultJson(
+            """{"page_id":"kmp-process","action_id":"increment","body":{"state":{"count":2}}}""",
+        )
+        assertTrue(result.contains("\"content\":\"计数：3\""))
+        assertTrue(result.contains("\"state\":{\"count\":3}"))
     }
 
     @Test

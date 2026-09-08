@@ -1,5 +1,10 @@
 package site.addzero.aio.plugin.kmpservice
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+
 data class SceneDefinition(
     val id: String,
     val label: String,
@@ -27,6 +32,7 @@ data class ActionDefinition(
 data class ActionsBody(
     val title: String,
     val content: String,
+    val state: Map<String, Long>,
     val actions: List<ActionDefinition>,
 ) : PageBody {
     override fun encode(): String = buildString {
@@ -34,6 +40,11 @@ data class ActionsBody(
         append(title.jsonString())
         append(",\"content\":")
         append(content.jsonString())
+        append(",\"state\":{")
+        append(state.entries.joinToString(separator = ",") { (key, value) ->
+            "${key.jsonString()}:$value"
+        })
+        append('}')
         append(",\"actions\":[")
         append(actions.joinToString(separator = ",") { it.encode() })
         append("]}")
@@ -107,6 +118,7 @@ object KmpProcessPlugin {
             body = ActionsBody(
                 title = "Kotlin 进程插件 v2 已在线",
                 content = "计数：$count",
+                state = mapOf("count" to count),
                 actions = listOf(ActionDefinition("increment", "Kotlin +1")),
             ),
         ),
@@ -115,8 +127,25 @@ object KmpProcessPlugin {
     fun definitionJson(count: Long = 0): String =
         pages(count).joinToString(prefix = "[", postfix = "]", separator = ",") { it.encode() }
 
-    fun actionResultJson(count: Long): String =
-        """{"body":${pages(count).single().body.encode()}}"""
+    fun actionResultJson(eventJson: String): String {
+        val event = Json.parseToJsonElement(eventJson).jsonObject
+        require(event["page_id"]?.jsonPrimitive?.content == "kmp-process") {
+            "page action is not declared"
+        }
+        require(event["action_id"]?.jsonPrimitive?.content == "increment") {
+            "page action is not declared"
+        }
+        val count = event["body"]
+            ?.jsonObject
+            ?.get("state")
+            ?.jsonObject
+            ?.get("count")
+            ?.jsonPrimitive
+            ?.longOrNull
+            ?: error("page state count is required")
+        require(count in 0 until Long.MAX_VALUE) { "page state count must be non-negative" }
+        return """{"body":${pages(count + 1).single().body.encode()}}"""
+    }
 }
 
 fun String.jsonString(): String = buildString {

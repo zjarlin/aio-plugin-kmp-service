@@ -5,10 +5,8 @@ import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicLong
 
 private const val DEFAULT_PORT = 8080
-private val count = AtomicLong()
 
 fun main() {
     val port = System.getenv("AIO_PLUGIN_PORT")?.toIntOrNull() ?: DEFAULT_PORT
@@ -30,14 +28,16 @@ private fun handle(exchange: HttpExchange) {
                 exchange.respond(
                     200,
                     "application/json; charset=utf-8",
-                    KmpProcessPlugin.definitionJson(count.get()),
+                    KmpProcessPlugin.definitionJson(),
                 )
 
             exchange.requestMethod == "POST" && exchange.requestURI.path == "/aio/action" ->
                 exchange.respond(
                     200,
                     "application/json; charset=utf-8",
-                    KmpProcessPlugin.actionResultJson(count.incrementAndGet()),
+                    KmpProcessPlugin.actionResultJson(
+                        exchange.requestBody.bufferedReader(StandardCharsets.UTF_8).use { it.readText() },
+                    ),
                 )
 
             exchange.requestURI.path == "/echo" -> exchange.echo()
