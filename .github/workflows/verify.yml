@@ -1,0 +1,65 @@
+name: Verify plugin
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: 保存已发布 JAR 内容
+        run: unzip -q dist/plugin.jar -d "$RUNNER_TEMP/committed-jar"
+
+      - name: 构建并测试 KMP 服务
+        env:
+          KOTLIN_CLI_NO_WELCOME_BANNER: "1"
+        run: |
+          ./kotlin check
+          ./kotlin package -m service -p jvm -f executable-jar
+          cp build/tasks/_service_executableJarJvm/service-jvm-executable.jar dist/plugin.jar
+
+      - name: 核对 JAR 语义内容
+        run: |
+          unzip -q dist/plugin.jar -d "$RUNNER_TEMP/rebuilt-jar"
+          diff -ru "$RUNNER_TEMP/committed-jar" "$RUNNER_TEMP/rebuilt-jar"
+
+      - name: 验证进程服务契约
+        run: |
+          AIO_PLUGIN_PORT=19080 java -jar dist/plugin.jar >"$RUNNER_TEMP/kmp-service.log" 2>&1 &
+          service_pid=$!
+          trap 'kill "$service_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:19080/health && break
+            if [ "$attempt" -eq 30 ]; then
+              cat "$RUNNER_TEMP/kmp-service.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:19080/aio/definition | jq -e '.[0].id == "kmp-process"'
+          curl --fail --silent -X POST -H 'x-aio-tenant-id: tenant-ci' -H 'x-aio-user-id: user-ci' --data 'hello' http://127.0.0.1:19080/echo | jq -e '.tenant_id == "tenant-ci" and .user_id == "user-ci" and .body == "hello"'
+
+      - name: 安装 Rust 工具链
+        run: rustup toolchain install nightly --profile minimal
+
+      - name: 检出 AIO 校验器
+        uses: actions/checkout@v4
+        with:
+          repository: zjarlin/aio
+          path: aio-host-source
+          submodules: recursive
+
+      - name: 验证 AIO 插件协议
+        run: cargo +nightly run --manifest-path aio-host-source/Cargo.toml --bin aio -- plugin validate "$GITHUB_WORKSPACE"
