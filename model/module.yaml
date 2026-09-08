@@ -10,6 +10,9 @@ dependencies:
 settings:
   kotlin:
     version: 2.3.21
+    serialization:
+      enabled: true
+      version: 1.11.0
   jvm:
     jdk:
       version: 21

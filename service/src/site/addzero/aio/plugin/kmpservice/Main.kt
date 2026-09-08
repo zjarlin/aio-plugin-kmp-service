@@ -47,7 +47,7 @@ private fun handle(exchange: HttpExchange) {
         exchange.respond(
             500,
             "application/json; charset=utf-8",
-            "{\"error\":${(error.message ?: "internal error").jsonString()}}",
+            ErrorResponse(error.message ?: "internal error").encode(),
         )
     } finally {
         exchange.close()
@@ -64,7 +64,8 @@ private fun HttpExchange.echo() {
         path = requestURI.path,
         query = requestURI.rawQuery,
         body = requestBody.bufferedReader(StandardCharsets.UTF_8).use { it.readText() },
-        context = context,
+        tenantId = context.tenantId,
+        userId = context.userId,
     )
     respond(200, "application/json; charset=utf-8", response.encode())
 }

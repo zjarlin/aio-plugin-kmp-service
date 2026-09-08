@@ -1,6 +1,6 @@
 # AIO Kotlin Multiplatform 进程插件
 
-这是由 JetBrains Kotlin Toolchain 构建的 AIO `process` 示例插件。语言无关的页面、请求上下文和响应模型位于 `model` 的 commonMain；`service` 使用 JDK 自带 HTTP 服务实现宿主约定。
+这是由 JetBrains Kotlin Toolchain 构建的 AIO `process` 示例插件。语言无关的页面、请求上下文和响应模型位于 `model` 的 commonMain；`service` 使用 JDK 自带 HTTP 服务实现宿主约定。JSON 使用 `kotlinx.serialization` 严格解析，并对应 AIO 发布的 [`plugin-request.schema.json`](https://raw.githubusercontent.com/zjarlin/aio/main/docs/plugin/schema/plugin-request.schema.json)。
 
 ```bash
 ./kotlin check
