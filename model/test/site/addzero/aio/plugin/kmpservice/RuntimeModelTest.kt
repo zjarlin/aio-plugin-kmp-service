@@ -24,6 +24,7 @@ class RuntimeModelTest {
         ).encode()
 
         assertTrue(response.contains("\"body\":\"say \\\"hello\\\"\\n\""))
+        assertTrue(response.contains("\"version\":2"))
         assertTrue(response.contains("\"tenant_id\":\"tenant-a\""))
         assertTrue(response.contains("\"user_id\":\"user-a\""))
     }

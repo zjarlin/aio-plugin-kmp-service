@@ -53,7 +53,7 @@ data class EchoResponse(
     val context: RequestContext,
 ) {
     fun encode(): String = buildString {
-        append("{\"runtime\":\"kotlin-jvm\",\"method\":")
+        append("{\"runtime\":\"kotlin-jvm\",\"version\":2,\"method\":")
         append(method.jsonString())
         append(",\"path\":")
         append(path.jsonString())
@@ -78,8 +78,8 @@ object KmpProcessPlugin {
             scene = SceneDefinition("community", "社区插件"),
             requiredPermission = null,
             body = TextBody(
-                title = "Kotlin 进程插件已在线",
-                content = "页面与后端服务来自同一个独立 Git 仓库，并由 Kotlin Toolchain 构建。",
+                title = "Kotlin 进程插件 v2 已在线",
+                content = "v2 页面与后端服务来自同一个独立 Git 仓库，并由 Kotlin Toolchain 构建。",
             ),
         ),
     )
