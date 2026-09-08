@@ -5,12 +5,39 @@ data class SceneDefinition(
     val label: String,
 )
 
+sealed interface PageBody {
+    fun encode(): String
+}
+
 data class TextBody(
     val title: String,
     val content: String,
-) {
-    fun encode(): String =
+) : PageBody {
+    override fun encode(): String =
         """{"kind":"text","title":${title.jsonString()},"content":${content.jsonString()}}"""
+}
+
+data class ActionDefinition(
+    val id: String,
+    val label: String,
+) {
+    fun encode(): String = """{"id":${id.jsonString()},"label":${label.jsonString()}}"""
+}
+
+data class ActionsBody(
+    val title: String,
+    val content: String,
+    val actions: List<ActionDefinition>,
+) : PageBody {
+    override fun encode(): String = buildString {
+        append("{\"kind\":\"actions\",\"title\":")
+        append(title.jsonString())
+        append(",\"content\":")
+        append(content.jsonString())
+        append(",\"actions\":[")
+        append(actions.joinToString(separator = ",") { it.encode() })
+        append("]}")
+    }
 }
 
 data class PageDefinition(
@@ -19,7 +46,7 @@ data class PageDefinition(
     val icon: String?,
     val scene: SceneDefinition,
     val requiredPermission: String?,
-    val body: TextBody,
+    val body: PageBody,
 ) {
     fun encode(): String = buildString {
         append("{\"id\":")
@@ -70,22 +97,26 @@ data class EchoResponse(
 }
 
 object KmpProcessPlugin {
-    val pages: List<PageDefinition> = listOf(
+    fun pages(count: Long = 0): List<PageDefinition> = listOf(
         PageDefinition(
             id = "kmp-process",
             label = "KMP 服务",
             icon = "server",
             scene = SceneDefinition("community", "社区插件"),
             requiredPermission = null,
-            body = TextBody(
+            body = ActionsBody(
                 title = "Kotlin 进程插件 v2 已在线",
-                content = "v2 页面与后端服务来自同一个独立 Git 仓库，并由 Kotlin Toolchain 构建。",
+                content = "计数：$count",
+                actions = listOf(ActionDefinition("increment", "Kotlin +1")),
             ),
         ),
     )
 
-    fun definitionJson(): String =
-        pages.joinToString(prefix = "[", postfix = "]", separator = ",") { it.encode() }
+    fun definitionJson(count: Long = 0): String =
+        pages(count).joinToString(prefix = "[", postfix = "]", separator = ",") { it.encode() }
+
+    fun actionResultJson(count: Long): String =
+        """{"body":${pages(count).single().body.encode()}}"""
 }
 
 fun String.jsonString(): String = buildString {

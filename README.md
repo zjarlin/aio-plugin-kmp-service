@@ -8,4 +8,4 @@
 cp build/tasks/_service_executableJarJvm/service-jvm-executable.jar dist/plugin.jar
 ```
 
-运行时提供 `GET /health`、`GET /aio/definition` 和 `/echo`。AIO 宿主通过受限内部网络转发 `/echo`，并注入当前用户与租户上下文；插件容器没有外网、宿主文件系统或数据库权限。
+运行时提供 `GET /health`、`GET /aio/definition`、`POST /aio/action` 和 `/echo`。页面与动作结果模型位于 commonMain，计数状态归当前租户的隔离 JVM；AIO 宿主负责动作白名单、RBAC 和用户/租户上下文注入。插件容器没有外网、宿主文件系统或数据库权限。

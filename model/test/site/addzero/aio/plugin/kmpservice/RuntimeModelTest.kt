@@ -7,10 +7,11 @@ import kotlin.test.assertTrue
 class RuntimeModelTest {
     @Test
     fun exposesDeclaredPageDefinition() {
-        val pages = KmpProcessPlugin.pages
+        val pages = KmpProcessPlugin.pages()
 
         assertEquals(listOf("kmp-process"), pages.map(PageDefinition::id))
-        assertTrue(KmpProcessPlugin.definitionJson().contains("\"kind\":\"text\""))
+        assertTrue(KmpProcessPlugin.definitionJson().contains("\"kind\":\"actions\""))
+        assertTrue(KmpProcessPlugin.actionResultJson(2).contains("\"content\":\"计数：2\""))
     }
 
     @Test
