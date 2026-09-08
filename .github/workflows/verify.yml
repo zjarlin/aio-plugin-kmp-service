@@ -33,7 +33,12 @@ jobs:
       - name: 核对 JAR 语义内容
         run: |
           unzip -q dist/plugin.jar -d "$RUNNER_TEMP/rebuilt-jar"
-          diff -ru "$RUNNER_TEMP/committed-jar" "$RUNNER_TEMP/rebuilt-jar"
+          diff -ru --exclude='*.jar' "$RUNNER_TEMP/committed-jar" "$RUNNER_TEMP/rebuilt-jar"
+          for module in model service; do
+            unzip -q "$RUNNER_TEMP/committed-jar/BOOT-INF/lib/$module-jvm.jar" -d "$RUNNER_TEMP/committed-$module"
+            unzip -q "$RUNNER_TEMP/rebuilt-jar/BOOT-INF/lib/$module-jvm.jar" -d "$RUNNER_TEMP/rebuilt-$module"
+            diff -ru "$RUNNER_TEMP/committed-$module" "$RUNNER_TEMP/rebuilt-$module"
+          done
 
       - name: 验证进程服务契约
         run: |
