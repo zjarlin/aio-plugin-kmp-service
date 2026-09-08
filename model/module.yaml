@@ -1,0 +1,13 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, wasmJs]
+
+description: "Language-neutral AIO process plugin models"
+
+settings:
+  kotlin:
+    version: 2.3.21
+  jvm:
+    jdk:
+      version: 21
+    release: 21
